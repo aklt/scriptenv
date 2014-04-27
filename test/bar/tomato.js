@@ -1,0 +1,4 @@
+
+function tomato() {
+    return 'red';
+}

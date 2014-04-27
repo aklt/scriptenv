@@ -1,0 +1,75 @@
+#!/usr/bin/env node
+
+var fs = require('fs'),
+    util = require('util'),
+    pkg = require('../package'),
+    args = process.argv.slice(2),
+    puts = util.puts;
+
+function usage(msg) {
+    msg = msg ? msg + '\n' : '';
+    puts(msg + 'Usage: scriptenv <dirname> [options]\n\n' +
+         '  --nowrap            don\'t wrap each file in a closure\n' + 
+         '  --scope <scopeVar>  name of the variable the closure should be applied to\n' + 
+         '  --exclude <regExp>  exclude files/dirs matching\n' +
+         '  --closure           use obj["prop"] to allow use of the closure compiler\n' +
+         '                                                                               (v' + pkg.version + ')');
+}
+
+(function main() {
+    if (args.length < 1) return usage();
+    var options = {}, 
+        dir,
+        lstat,
+        err = [];
+    
+    for (var i = 0; i < args.length; i += 1) {
+        var arg = args[i];
+        if (/^--?no?w?r?a?p?/.test(arg)) options.nowrap = true;
+        else if (/^--?sc?o?p?e?/.test(arg)) {
+            options.scope = args[i + 1];
+            i += 1;
+        } else if (/^--?ex?c?l?u?d?e?/.test(arg)) {
+            var rx = args[i + 1];
+            if (typeof rx === 'string') rx = new RegExp(args[i + 1]);
+            options.exclude = rx;
+            i += 1;
+        } else if (/^--?cl?o?s?u?r?e?/.test(arg)) {
+            options.closure = true;
+        } else if (/^-/.test(arg)) {
+            return usage();
+        } else {
+            dir = arg;
+        }
+    }
+
+    try {
+        lstat = fs.lstatSync(dir);
+    } catch (e) {
+        err.push(e);
+    }
+
+    if (!lstat || !lstat.isDirectory()) {
+        return usage('Not a directory: ' + dir);
+    }
+
+    dir = dir.replace(/\/+$/, '');
+    var bare = require('../index'),
+        code = bare.code.call(this, dir, options),
+        evalCode;
+
+    try {        
+        evalCode = bare.call(this, dir, options);
+    } catch (e) {
+        err.push(e);
+    }
+
+    puts(code + '\n' + util.inspect(evalCode , 0, 10).replace(/^/mg, '//  '));
+
+    if (err.length)
+        err.map(function (e) {
+            console.warn(e.stack);
+        });
+}());
+
+

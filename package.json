@@ -1,0 +1,13 @@
+{
+  "name": "scriptenv",
+  "version": "0.1.0",
+  "description": "Create an object hierarchy of functions from a directory structure",
+  "author": "Anders Thøgersen <anders@bladre.dk>",
+  "keywords": [ "javascript", "loading", "browser", "server" ],
+  "licenses": [ "MIT" ],
+  "bin": "bin/scriptenv",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aklt/scriptenv.git"
+  }
+}
