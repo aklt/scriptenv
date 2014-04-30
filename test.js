@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 
 var scriptenv = require('./index'),
-    dir1 = scriptenv('test/dir1'),
-    dir2 = scriptenv('test/dir2'),
+    bar = scriptenv('test/bar'),
     all = scriptenv('test'),
     ex = scriptenv('test', {
-        exclude: /coo/
+        exclude: /dee/
     });
 
-console.warn(dir1);
-console.warn(dir2);
+console.warn(bar);
 console.warn(all);
 console.warn(ex);
