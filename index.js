@@ -6,18 +6,20 @@ function _recurseDirSync(dirs, result, indent, index, o) {
         var dir = dirs.shift(),
             lastDir = dir.split(/\/+/).pop(),
             objPath = dir.slice(index),
-            scope = objPath,
             files = [],
             filePath,
+            scope,
             myIndent = indent + '  ';
 
         result.push(indent + '(function (' + lastDir + ') {');
         fs.readdirSync(dir).forEach(function (file) {
-            if (/^\./.test(file) || o.exclude && o.exclude.test(file)) return;
             filePath = dir + '/' + file;
+            if (/^\./.test(file) || o.exclude && o.exclude.test(filePath)) return;
             var parts = objPath.split(/\/+/);
             if (parts.length === 1) scope = parts[0];
-            else scope = parts[0] + o.left + parts.slice(1).join(o.delim) + o.right;
+            else {
+                scope = parts[parts.length - 2] + o.left + parts.slice(parts.length - 1).join(o.delim) + o.right;
+            }
             var stat = fs.lstatSync(filePath),
                 isJs = /\.js$/.test(filePath);
             if (isJs && stat.isSymbolicLink()) {
@@ -45,7 +47,7 @@ function _recurseDirSync(dirs, result, indent, index, o) {
 
             do {
                 line = lines[i],
-                m = /^function\s+([\w_\$]+)/.exec(line);
+                m = /^function\s+([\w\$_]+)\s*\(/.exec(line);
                 if (m) {
                     lastFuncName = m[1];
                     break;
@@ -56,7 +58,7 @@ function _recurseDirSync(dirs, result, indent, index, o) {
             if (!o.nowrap) result.push(myIndent + '(function () {');
             else wrapIndent += '  ';
             result.push(data.replace(/^/gm,  wrapIndent));
-            result.push(wrapIndent +  lastDir + '["' + name + '"] = ' + lastFuncName + ';');
+            result.push(wrapIndent +  lastDir + o.left + name + o.right + ' = ' + lastFuncName + ';');
             if (!o.nowrap) result.push(myIndent + '}());');
         }
             
@@ -64,6 +66,10 @@ function _recurseDirSync(dirs, result, indent, index, o) {
         result.push(myIndent + 'return ' + lastDir + ';');
         if (o.scope && indent === '')
             scope = o.scope;
+        if (!scope) {
+            parts = objPath.split(/\/+/);
+            scope = parts[1] + o.left + parts.slice(2).join(o.delim) + o.right;
+        }
         result.push(indent  + '}(' + scope  + ' = {}));');
     }
     return result.join('\n');
@@ -86,8 +92,15 @@ function recurseDirSync(dir, o) {
 
 function requireCode(dir, o) {
     o = o || {};
-    /*jshint evil: true*/
-    return (new Function('return ' + recurseDirSync(dir, o))).call(o.scope || arguments.caller || this);
+    try {
+        /*jshint evil: true*/
+        return (new Function('return ' + recurseDirSync(dir, o)))
+                            .call(o.scope || arguments.caller || this);
+    } catch (e) {
+        setImmediate(function () {
+            console.warn(e.stack.replace(/<anonymous>/g, dir + '/*.js'));
+        });
+    }
 }
 
 requireCode.code = function code(dir, o) {
