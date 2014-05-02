@@ -9,11 +9,12 @@ var fs = require('fs'),
 function usage(msg) {
     msg = msg ? msg + '\n' : '';
     puts(msg + 'Usage: scriptenv <dirname> [options]\n\n' +
-         '  --nowrap            don\'t wrap each file in a closure\n' + 
-         '  --scope <scopeVar>  name of the variable the closure should be applied to\n' + 
-         '  --exclude <regExp>  exclude files/dirs matching\n' +
-         '  --closure           use obj["prop"] to allow use of the closure compiler\n' +
-         '                                                                               (v' + pkg.version + ')');
+         ' --nowrap,  -n            don\'t wrap each file in a closure\n' + 
+         ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' + 
+         ' --exclude, -e <regExp>   exclude files/dirs matching\n' +
+         ' --closure, -c            use obj["prop"] to allow use of the closure compiler\n' +
+         ' --defined, -d            only overwrite dir objects if they are not truthy\n' +
+         '                                                                                   (v' + pkg.version + ')');
 }
 
 (function main() {
@@ -36,6 +37,8 @@ function usage(msg) {
             i += 1;
         } else if (/^--?cl?o?s?u?r?e?/.test(arg)) {
             options.closure = true;
+        } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
+            options.defined = true;
         } else if (/^-/.test(arg)) {
             return usage();
         } else {

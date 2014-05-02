@@ -70,7 +70,9 @@ function _recurseDirSync(dirs, result, indent, index, o) {
             parts = objPath.split(/\/+/);
             scope = parts[1] + o.left + parts.slice(2).join(o.delim) + o.right;
         }
-        result.push(indent  + '}(' + scope  + ' = {}));');
+        if (o.defined) scope = scope + ' = typeof ' + scope + ' !== "undefined" ? ' + scope + ' :';
+        else scope += ' =';
+        result.push(indent  + '}(' + scope + ' {}));');
     }
     return result.join('\n');
 }
