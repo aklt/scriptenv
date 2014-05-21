@@ -13,6 +13,17 @@ function _recurseDirSync(dirs, result, indent, index, o) {
 
         result.push(indent + '(function (' + lastDir + ') {');
         fs.readdirSync(dir).forEach(function (file) {
+            // TODO Add inclusion via SCRIPTENV variable
+            // TODO Add markdown
+            // if (o.markdown) {
+            //     return result.push(fs.readFileSync(filePath).toString()
+            //                                        .split(/\r\n|\n|\r/)
+            //                                        .filter(function (t) { return /^\/\/ /.test(t); })
+            //                                        .map(function (line) {
+            //                                           return line.replace(/^\/\/ /, '');
+            //                                        })
+            //                                        .join('\n'));
+            // }
             filePath = dir + '/' + file;
             if (/^\./.test(file) || o.exclude && o.exclude.test(filePath)) return;
             var parts = objPath.split(/\/+/);
@@ -54,12 +65,14 @@ function _recurseDirSync(dirs, result, indent, index, o) {
                 }
                 i -= 1;
             } while (i > -1);
-            var wrapIndent = indent + '  ';
-            if (!o.nowrap) result.push(myIndent + '(function () {');
-            else wrapIndent += '  ';
-            result.push(data.replace(/^/gm,  wrapIndent));
-            result.push(wrapIndent +  lastDir + o.left + name + o.right + ' = ' + lastFuncName + ';');
-            if (!o.nowrap) result.push(myIndent + '}());');
+            if (lastFuncName) {
+                var wrapIndent = indent + '  ';
+                if (!o.nowrap) result.push(myIndent + '(function () {');
+                else wrapIndent += '  ';
+                result.push(data.replace(/^/gm,  wrapIndent));
+                result.push(wrapIndent +  lastDir + o.left + name + o.right + ' = ' + lastFuncName + ';');
+                if (!o.nowrap) result.push(myIndent + '}());');
+            }
         }
             
         _recurseDirSync(dirs, result, indent + '  ', index, o);

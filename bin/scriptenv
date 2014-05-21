@@ -13,7 +13,9 @@ function usage(msg) {
          ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' + 
          ' --exclude, -e <regExp>   exclude files/dirs matching\n' +
          ' --closure, -c            use obj["prop"] to allow use of the closure compiler\n' +
-         ' --defined, -d            only overwrite dir objects if they are not truthy\n' +
+         ' --respect, -r            do not overwrite properties if they are set\n' +
+         ' --markdown -m            Get the comments as markdown\n' +
+         ' --this,    -t            assign return this\n' +
          '                                                                                   (v' + pkg.version + ')');
 }
 
@@ -38,7 +40,8 @@ function usage(msg) {
         } else if (/^--?cl?o?s?u?r?e?/.test(arg)) {
             options.closure = true;
         } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
-            options.defined = true;
+        } else if (/^--?ma?r?k?d?o?w?n?/.test(arg)) {
+            options.markdown = true;
         } else if (/^-/.test(arg)) {
             return usage();
         } else {
