@@ -52,7 +52,7 @@ function _recurseDirSync(dirs, result, indent, index, o) {
                 data = fs.readFileSync(filePath).toString(),
                 lines = data.split(/\r\n|\n/g),
                 i = lines.length - 1,
-                lastFuncName,
+                lastFuncName = null,
                 line,
                 m;
 
@@ -65,14 +65,15 @@ function _recurseDirSync(dirs, result, indent, index, o) {
                 }
                 i -= 1;
             } while (i > -1);
+
+            var wrapIndent = indent + '  ';
+            if (!o.nowrap) result.push(myIndent + '(function () {');
+            else wrapIndent += '  ';
+            result.push(data.replace(/^/gm,  wrapIndent));
             if (lastFuncName) {
-                var wrapIndent = indent + '  ';
-                if (!o.nowrap) result.push(myIndent + '(function () {');
-                else wrapIndent += '  ';
-                result.push(data.replace(/^/gm,  wrapIndent));
                 result.push(wrapIndent +  lastDir + o.left + name + o.right + ' = ' + lastFuncName + ';');
-                if (!o.nowrap) result.push(myIndent + '}());');
             }
+            if (!o.nowrap) result.push(myIndent + '}());');
         }
             
         _recurseDirSync(dirs, result, indent + '  ', index, o);
