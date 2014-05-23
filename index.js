@@ -75,6 +75,12 @@ function _recurseDirSync(dirs, result, indent, index, o) {
             }
             if (!o.nowrap) result.push(myIndent + '}());');
         }
+
+        _recurseDirSync(dirs, result, indent + '  ', index, o);
+        var appendFile = o.append && o.append[lastDir];
+        if (appendFile) {
+            result.push(fs.readFileSync(appendFile).toString().replace(/^/gm, indent + '  '));
+        }
             
         _recurseDirSync(dirs, result, indent + '  ', index, o);
         result.push(myIndent + 'return ' + lastDir + ';');

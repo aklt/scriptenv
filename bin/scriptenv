@@ -14,8 +14,7 @@ function usage(msg) {
          ' --exclude, -e <regExp>   exclude files/dirs matching\n' +
          ' --closure, -c            use obj["prop"] to allow use of the closure compiler\n' +
          ' --respect, -r            do not overwrite properties if they are set\n' +
-         ' --markdown -m            Get the comments as markdown\n' +
-         ' --this,    -t            assign return this\n' +
+         ' --append,  -a <at:file>  append a file: --append foo:main.js\n' +
          '                                                                                   (v' + pkg.version + ')');
 }
 
@@ -26,6 +25,7 @@ function usage(msg) {
         lstat,
         err = [];
     
+    options.append = {};
     for (var i = 0; i < args.length; i += 1) {
         var arg = args[i];
         if (/^--?no?w?r?a?p?/.test(arg)) options.nowrap = true;
@@ -40,6 +40,13 @@ function usage(msg) {
         } else if (/^--?cl?o?s?u?r?e?/.test(arg)) {
             options.closure = true;
         } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
+            options.defined = true;
+        } else if (/^--?ap?p?e?n?d?/.test(arg)) {
+            var append = args[i + 1].split(/:/);
+            if (append.length !== 2) return usage('Syntax: --append foo:file.js');
+            if (!fs.existsSync(append[1])) return usage('No such file: ' + append[1]);
+            options.append[append[0]] = append[1];
+            i += 1;
         } else if (/^--?ma?r?k?d?o?w?n?/.test(arg)) {
             options.markdown = true;
         } else if (/^-/.test(arg)) {
