@@ -9,8 +9,8 @@ var fs = require('fs'),
 function usage(msg) {
     msg = msg ? msg + '\n' : '';
     puts(msg + 'Usage: scriptenv <dirname> [options]\n\n' +
-         ' --nowrap,  -n            don\'t wrap each file in a closure\n' + 
-         ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' + 
+         ' --nowrap,  -n            don\'t wrap each file in a closure\n' +
+         ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' +
          ' --exclude, -e <regExp>   exclude files/dirs matching\n' +
          ' --closure, -c            use obj["prop"] to allow use of the closure compiler\n' +
          ' --respect, -r            do not overwrite properties if they are set\n' +
@@ -21,11 +21,11 @@ function usage(msg) {
 
 (function main() {
     if (args.length < 1) return usage();
-    var options = {}, 
+    var options = {},
         dir,
         lstat,
         err = [];
-    
+
     options.append = {};
     for (var i = 0; i < args.length; i += 1) {
         var arg = args[i];
@@ -74,20 +74,30 @@ function usage(msg) {
         code = bare.code.call(this, dir, options),
         evalCode;
 
-    try {        
-        evalCode = bare.call(this, dir, options);
-    } catch (e) {
-        err.push(e);
-    }
+    function evalAndPrint() {
+        try {
+            evalCode = bare.call(this, dir, options);
+        } catch (e) {
+            err.push(e);
+        }
 
-    if (options.inspect) code = util.inspect(evalCode, 0, 10, 1);
-    else code += '\n' + util.inspect(evalCode , 0, 10).replace(/^/mg, '// ');
-    puts(code);
+        if (options.inspect) code = util.inspect(evalCode, 0, 10, 1);
+        else code += '\n' + util.inspect(evalCode , 0, 10).replace(/^/mg, '// ');
+        puts(code);
 
-    if (err.length)
-        err.map(function (e) {
+        if (err.length) err.map(function (e) {
             console.warn(e.stack);
         });
+    }
+
+    if (!options.inspect) return evalAndPrint();
+
+    require('jsdom').env('<html><head></head><body><h1>Hello</h1><p id="p1">p1</p></body></html>', function (errors, window) {
+        global.window = window;
+        global.document = window.document;
+        evalAndPrint();
+        window.close();
+    });
 }());
 
 
