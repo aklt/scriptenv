@@ -77,12 +77,14 @@ function _recurseDirSync(dirs, result, indent, index, o) {
         }
 
         _recurseDirSync(dirs, result, indent + '  ', index, o);
-        var appendFile = o.append && o.append[lastDir];
-        if (appendFile) {
-            result.push(fs.readFileSync(appendFile).toString().replace(/^/gm, indent + '  '));
+        if (o.append) {
+            var k = Object.keys(o.append);
+            if (k.length > 0) {
+            result.push( k + ' = ' + fs.readFileSync(o.append[k]).toString().replace(/^/gm, indent + '  '));
+            o.append = 0;
+            }
         }
             
-        _recurseDirSync(dirs, result, indent + '  ', index, o);
         result.push(myIndent + 'return ' + lastDir + ';');
         if (o.scope && indent === '')
             scope = o.scope;
