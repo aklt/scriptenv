@@ -79,11 +79,11 @@ function _recurseDirSync(dirs, result, indent, index, o) {
 
         _recurseDirSync(dirs, result, indent + '  ', index, o);
         if (o.append && !hasAppended) {
-            var k = Object.keys(o.append);
-            if (k.length > 0) {
-                result.push((k + ' = ' + fs.readFileSync(o.append[k]).toString()).replace(/^/gm, indent + '  '));
-                hasAppended = true;
-            }
+            var append = o.append.split(/:/);
+            if (append.length !== 2) throw new Error('Syntax: --append foo:file.js');
+            if (!fs.existsSync(append[1])) throw new Error('No such file: ' + append[1]);
+            result.push((append[0] + ' = ' + fs.readFileSync(append[1]).toString()).replace(/^/gm, indent + '  '));
+            hasAppended = true;
         }
             
         result.push(myIndent + 'return ' + lastDir + ';');

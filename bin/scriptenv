@@ -43,10 +43,7 @@ function usage(msg) {
         } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
             options.defined = true;
         } else if (/^--?ap?p?e?n?d?/.test(arg)) {
-            var append = args[i + 1].split(/:/);
-            if (append.length !== 2) return usage('Syntax: --append foo:file.js');
-            if (!fs.existsSync(append[1])) return usage('No such file: ' + append[1]);
-            options.append[append[0]] = append[1];
+            options.append = args[i + 1];
             i += 1;
         } else if (/^--?in?s?p?e?c?t?/.test(arg)) {
             options.inspect = true;
