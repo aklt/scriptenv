@@ -70,13 +70,13 @@ function usage(msg) {
     }
 
     dir = dir.replace(/\/+$/, '');
-    var bare = require('../index'),
-        code = bare.code.call(this, dir, options),
+    var scriptenv = require('../index'),
+        code = scriptenv.code.call(this, dir, options),
         evalCode;
 
     function evalAndPrint() {
         try {
-            evalCode = bare.call(this, dir, options);
+            evalCode = scriptenv.call(this, dir, options);
         } catch (e) {
             err.push(e);
         }
@@ -100,4 +100,5 @@ function usage(msg) {
     });
 }());
 
+// vi: ft=javascript
 

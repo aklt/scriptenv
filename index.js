@@ -1,5 +1,6 @@
 var fs = require('fs');
 
+var hasAppended;
 function _recurseDirSync(dirs, result, indent, index, o) {
     dirs = Array.isArray(dirs) ? dirs : [dirs];
     if (dirs.length > 0) {
@@ -77,11 +78,11 @@ function _recurseDirSync(dirs, result, indent, index, o) {
         }
 
         _recurseDirSync(dirs, result, indent + '  ', index, o);
-        if (o.append) {
+        if (o.append && !hasAppended) {
             var k = Object.keys(o.append);
             if (k.length > 0) {
-            result.push( k + ' = ' + fs.readFileSync(o.append[k]).toString().replace(/^/gm, indent + '  '));
-            o.append = 0;
+                result.push((k + ' = ' + fs.readFileSync(o.append[k]).toString()).replace(/^/gm, indent + '  '));
+                hasAppended = true;
             }
         }
             
@@ -116,6 +117,7 @@ function recurseDirSync(dir, o) {
         o.left = '["';
         o.right = '"]';
     }
+    hasAppended = false;
     return _recurseDirSync([dir], [], '',  dir.length - last.length, o);
 }
 
