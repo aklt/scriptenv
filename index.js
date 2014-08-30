@@ -80,10 +80,18 @@ function _recurseDirSync(dirs, result, indent, index, o) {
         _recurseDirSync(dirs, result, indent + '  ', index, o);
         if (o.append && !hasAppended) {
             var append = o.append.split(/:/);
-            if (append.length !== 2) throw new Error('Syntax: --append foo:file.js');
-            if (!fs.existsSync(append[1])) throw new Error('No such file: ' + append[1]);
-            result.push((append[0] + ' = ' + fs.readFileSync(append[1]).toString()).replace(/^/gm, indent + '  '));
-            hasAppended = true;
+            if (append.length === 2) {
+                if (!fs.existsSync(append[1])) throw new Error('No such file: ' + append[1]);
+                result.push((append[0] + ' = ' + fs.readFileSync(append[1]).toString()).replace(/^/gm, indent + '  '));
+                hasAppended = true;
+            } else if (append.length === 1) {
+                if (!fs.existsSync(append[0])) throw new Error('No such file: ' + append[0]);
+                result.push(fs.readFileSync(append[0]).toString().replace(/^/gm, indent + '  '));
+                hasAppended = true;
+            } else {
+                throw new Error('Syntax: --append [foo:]file.js');
+            }
+
         }
             
         result.push(myIndent + 'return ' + lastDir + ';');

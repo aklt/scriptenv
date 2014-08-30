@@ -1,6 +1,6 @@
 {
   "name": "scriptenv",
-  "version": "0.1.4",
+  "version": "0.1.4-dev",
   "description": "Create an object hierarchy of functions from a directory structure",
   "author": "Anders Thøgersen <anders@bladre.dk>",
   "keywords": [

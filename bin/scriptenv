@@ -26,7 +26,7 @@ function usage(msg) {
         lstat,
         err = [];
 
-    options.append = {};
+    options.append = '';
     for (var i = 0; i < args.length; i += 1) {
         var arg = args[i];
         if (/^--?no?w?r?a?p?/.test(arg)) options.nowrap = true;
