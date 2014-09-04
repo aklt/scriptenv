@@ -107,8 +107,9 @@ function _recurseDirSync(dirs, result, indent, index, o) {
             else
                 scope = scope + ' = ' + scope + ' ||';
         }
-        else scope += ' =';
-        result.push(indent  + '}(' + scope + ' {}));');
+        if (indent !== '')
+            scope += ' = {}';
+        result.push(indent  + '}(' + scope + '));');
     }
     return result.join('\n');
 }
