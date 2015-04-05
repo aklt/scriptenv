@@ -9,21 +9,24 @@ var fs = require('fs'),
 function usage(msg) {
     msg = msg ? msg + '\n' : '';
     puts(msg + 'Usage: scriptenv <dirname> [options]\n\n' +
-         ' --nowrap,  -n            don\'t wrap each file in a closure\n' + 
-         ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' + 
+         ' --nowrap,  -n            don\'t wrap each file in a closure\n' +
+         ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' +
          ' --exclude, -e <regExp>   exclude files/dirs matching\n' +
          ' --closure, -c            use obj["prop"] to allow use of the closure compiler\n' +
-         ' --defined, -d            only overwrite dir objects if they are not truthy\n' +
+         ' --respect, -r            do not overwrite properties if they are set\n' +
+         ' --inspect, -i            show a util.inspect printed version of the scriptenv\n' +
+         ' --append,  -a <at:file>  append a file: --append foo:main.js\n' +
          '                                                                                   (v' + pkg.version + ')');
 }
 
 (function main() {
     if (args.length < 1) return usage();
-    var options = {}, 
+    var options = {},
         dir,
         lstat,
         err = [];
-    
+
+    options.append = '';
     for (var i = 0; i < args.length; i += 1) {
         var arg = args[i];
         if (/^--?no?w?r?a?p?/.test(arg)) options.nowrap = true;
@@ -39,6 +42,13 @@ function usage(msg) {
             options.closure = true;
         } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
             options.defined = true;
+        } else if (/^--?ap?p?e?n?d?/.test(arg)) {
+            options.append = args[i + 1];
+            i += 1;
+        } else if (/^--?in?s?p?e?c?t?/.test(arg)) {
+            options.inspect = true;
+        } else if (/^--?ma?r?k?d?o?w?n?/.test(arg)) {
+            options.markdown = true;
         } else if (/^-/.test(arg)) {
             return usage();
         } else {
@@ -57,22 +67,35 @@ function usage(msg) {
     }
 
     dir = dir.replace(/\/+$/, '');
-    var bare = require('../index'),
-        code = bare.code.call(this, dir, options),
+    var scriptenv = require('../index'),
+        code = scriptenv.code.call(this, dir, options),
         evalCode;
 
-    try {        
-        evalCode = bare.call(this, dir, options);
-    } catch (e) {
-        err.push(e);
-    }
+    function evalAndPrint() {
+        try {
+            evalCode = scriptenv.call(this, dir, options);
+        } catch (e) {
+            err.push(e);
+        }
 
-    puts(code + '\n' + util.inspect(evalCode , 0, 10).replace(/^/mg, '//  '));
+        if (options.inspect) code = util.inspect(evalCode, 0, 10, 1);
+        else code += '\n' + util.inspect(evalCode , 0, 10).replace(/^/mg, '// ');
+        puts(code);
 
-    if (err.length)
-        err.map(function (e) {
+        if (err.length) err.map(function (e) {
             console.warn(e.stack);
         });
+    }
+
+    if (!options.inspect) return evalAndPrint();
+
+    require('jsdom').env('<html><head></head><body><h1>Hello</h1><p id="p1">p1</p></body></html>', function (errors, window) {
+        global.window = window;
+        global.document = window.document;
+        evalAndPrint();
+        window.close();
+    });
 }());
 
+// vi: ft=javascript
 

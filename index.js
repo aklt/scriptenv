@@ -1,5 +1,6 @@
 var fs = require('fs');
 
+var hasAppended;
 function _recurseDirSync(dirs, result, indent, index, o) {
     dirs = Array.isArray(dirs) ? dirs : [dirs];
     if (dirs.length > 0) {
@@ -13,6 +14,17 @@ function _recurseDirSync(dirs, result, indent, index, o) {
 
         result.push(indent + '(function (' + lastDir + ') {');
         fs.readdirSync(dir).forEach(function (file) {
+            // TODO Add inclusion via SCRIPTENV variable
+            // TODO Add markdown
+            // if (o.markdown) {
+            //     return result.push(fs.readFileSync(filePath).toString()
+            //                                        .split(/\r\n|\n|\r/)
+            //                                        .filter(function (t) { return /^\/\/ /.test(t); })
+            //                                        .map(function (line) {
+            //                                           return line.replace(/^\/\/ /, '');
+            //                                        })
+            //                                        .join('\n'));
+            // }
             filePath = dir + '/' + file;
             if (/^\./.test(file) || o.exclude && o.exclude.test(filePath)) return;
             var parts = objPath.split(/\/+/);
@@ -41,7 +53,7 @@ function _recurseDirSync(dirs, result, indent, index, o) {
                 data = fs.readFileSync(filePath).toString(),
                 lines = data.split(/\r\n|\n/g),
                 i = lines.length - 1,
-                lastFuncName,
+                lastFuncName = null,
                 line,
                 m;
 
@@ -54,15 +66,34 @@ function _recurseDirSync(dirs, result, indent, index, o) {
                 }
                 i -= 1;
             } while (i > -1);
+
             var wrapIndent = indent + '  ';
             if (!o.nowrap) result.push(myIndent + '(function () {');
             else wrapIndent += '  ';
             result.push(data.replace(/^/gm,  wrapIndent));
-            result.push(wrapIndent +  lastDir + o.left + name + o.right + ' = ' + lastFuncName + ';');
+            if (lastFuncName) {
+                result.push(wrapIndent +  lastDir + o.left + name + o.right + ' = ' + lastFuncName + ';');
+            }
             if (!o.nowrap) result.push(myIndent + '}());');
         }
-            
+
         _recurseDirSync(dirs, result, indent + '  ', index, o);
+        if (o.append && !hasAppended) {
+            var append = o.append.split(/:/);
+            if (append.length === 2) {
+                if (!fs.existsSync(append[1])) throw new Error('No such file: ' + append[1]);
+                result.push((append[0] + ' = ' + fs.readFileSync(append[1]).toString()).replace(/^/gm, indent + '  '));
+                hasAppended = true;
+            } else if (append.length === 1) {
+                if (!fs.existsSync(append[0])) throw new Error('No such file: ' + append[0]);
+                result.push(fs.readFileSync(append[0]).toString().replace(/^/gm, indent + '  '));
+                hasAppended = true;
+            } else {
+                throw new Error('Syntax: --append [foo:]file.js');
+            }
+
+        }
+            
         result.push(myIndent + 'return ' + lastDir + ';');
         if (o.scope && indent === '')
             scope = o.scope;
@@ -76,8 +107,9 @@ function _recurseDirSync(dirs, result, indent, index, o) {
             else
                 scope = scope + ' = ' + scope + ' ||';
         }
-        else scope += ' =';
-        result.push(indent  + '}(' + scope + ' {}));');
+        if (indent !== '')
+            scope += ' = {}';
+        result.push(indent  + '}(' + scope + '));');
     }
     return result.join('\n');
 }
@@ -94,6 +126,7 @@ function recurseDirSync(dir, o) {
         o.left = '["';
         o.right = '"]';
     }
+    hasAppended = false;
     return _recurseDirSync([dir], [], '',  dir.length - last.length, o);
 }
 
