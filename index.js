@@ -1,3 +1,4 @@
+/*global setImmediate, console*/
 var fs = require('fs');
 
 var hasAppended;
@@ -51,14 +52,14 @@ function _recurseDirSync(dirs, result, indent, index, o) {
             // export last function of file named as the file
             var name = filePath.replace(/^.*\/([^\/]+)\.js$/, '$1'),
                 data = fs.readFileSync(filePath).toString(),
-                lines = data.split(/\r\n|\n/g),
+                lines = data.split(/\r\n|\n|\r/g),
                 i = lines.length - 1,
                 lastFuncName = null,
                 line,
                 m;
 
             do {
-                line = lines[i],
+                line = lines[i];
                 m = /^function\s+([\w\$_]+)\s*\(/.exec(line);
                 if (m) {
                     lastFuncName = m[1];
@@ -98,7 +99,7 @@ function _recurseDirSync(dirs, result, indent, index, o) {
         if (o.scope && indent === '')
             scope = o.scope;
         if (!scope) {
-            parts = objPath.split(/\/+/);
+            var parts = objPath.split(/\/+/);
             scope = parts[1] + o.left + parts.slice(2).join(o.delim) + o.right;
         }
         if (o.defined) {

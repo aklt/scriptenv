@@ -4,7 +4,8 @@ var fs = require('fs'),
     util = require('util'),
     pkg = require('../package'),
     args = process.argv.slice(2),
-    puts = util.puts;
+    puts = util.puts,
+    dir2js = require('../lib/dirToJs');
 
 function usage(msg) {
     msg = msg ? msg + '\n' : '';
@@ -16,6 +17,7 @@ function usage(msg) {
          ' --respect, -r            do not overwrite properties if they are set\n' +
          ' --inspect, -i            show a util.inspect printed version of the scriptenv\n' +
          ' --append,  -a <at:file>  append a file: --append foo:main.js\n' +
+         ' --cat,     -c <dir>      cat <dir> as an ordered .js file\n' +
          '                                                                                   (v' + pkg.version + ')');
 }
 
@@ -35,11 +37,13 @@ function usage(msg) {
             i += 1;
         } else if (/^--?ex?c?l?u?d?e?/.test(arg)) {
             var rx = args[i + 1];
-            if (typeof rx === 'string') rx = new RegExp(args[i + 1]);
+            if (typeof rx === 'string') rx = new RegExp(rx);
             options.exclude = rx;
             i += 1;
-        } else if (/^--?cl?o?s?u?r?e?/.test(arg)) {
+        } else if (/^--?clo?s?u?r?e?/.test(arg)) {
             options.closure = true;
+        } else if (/^--?cat?/.test(arg)) {
+            options.cat = true;
         } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
             options.defined = true;
         } else if (/^--?ap?p?e?n?d?/.test(arg)) {
@@ -55,6 +59,7 @@ function usage(msg) {
             dir = arg;
         }
     }
+    console.warn('opts', options, dir);
 
     try {
         lstat = fs.lstatSync(dir);
@@ -64,6 +69,11 @@ function usage(msg) {
 
     if (!lstat || !lstat.isDirectory()) {
         return usage('Not a directory: ' + dir);
+    }
+
+    if (options.cat) {
+        console.warn('ccc');
+        return puts(dir2js(dir, options));
     }
 
     dir = dir.replace(/\/+$/, '');
