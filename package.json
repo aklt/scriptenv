@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "htmlparser2": "^3.8.2",
-    "jsdom": "^4.1.0"
+    "jsdom": "^4.1.0",
+    "mkdirp": "^0.5.1"
   }
 }

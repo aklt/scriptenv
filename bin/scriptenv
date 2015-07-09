@@ -4,12 +4,11 @@ var fs = require('fs'),
     util = require('util'),
     pkg = require('../package'),
     args = process.argv.slice(2),
-    puts = util.puts,
-    dir2js = require('../lib/dirToJs');
+    fileFromDir = require('../lib/fileFromDir');
 
 function usage(msg) {
     msg = msg ? msg + '\n' : '';
-    puts(msg + 'Usage: scriptenv <dirname> [options]\n\n' +
+    console.log(msg + 'Usage: scriptenv <dirname> [options]\n\n' +
          ' --nowrap,  -n            don\'t wrap each file in a closure\n' +
          ' --scope    -s <scopeVar> name of the variable the closure should be applied to\n' +
          ' --exclude, -e <regExp>   exclude files/dirs matching\n' +
@@ -17,7 +16,8 @@ function usage(msg) {
          ' --respect, -r            do not overwrite properties if they are set\n' +
          ' --inspect, -i            show a util.inspect printed version of the scriptenv\n' +
          ' --append,  -a <at:file>  append a file: --append foo:main.js\n' +
-         ' --cat,     -c <dir>      cat <dir> as an ordered .js file\n' +
+         ' --cat,     -c            cat js in <dirname> as an ordered .js file\n' +
+         ' --packed,  -p            pack js to a file compatible with browsers and node\n' +
          '                                                                                   (v' + pkg.version + ')');
 }
 
@@ -44,6 +44,10 @@ function usage(msg) {
             options.closure = true;
         } else if (/^--?cat?/.test(arg)) {
             options.cat = true;
+        } else if (/^--?pa?c?k?a?g?e?d?/.test(arg)) {
+            options.packaged = true;
+        } else if (/^--?do?c?s?/.test(arg)) {
+            options.docs = true;
         } else if (/^--?de?f?i?n?e?d?/.test(arg)) {
             options.defined = true;
         } else if (/^--?ap?p?e?n?d?/.test(arg)) {
@@ -70,8 +74,9 @@ function usage(msg) {
         return usage('Not a directory: ' + dir);
     }
 
-    if (options.cat) {
-        return puts(dir2js(dir, options));
+    if (options.cat || options.packaged || options.docs) {
+        console.warn('Opt', options);
+        return console.log(fileFromDir(dir, options));
     }
 
     dir = dir.replace(/\/+$/, '');
@@ -88,7 +93,7 @@ function usage(msg) {
 
         if (options.inspect) code = util.inspect(evalCode, 0, 10, 1);
         else code += '\n' + util.inspect(evalCode , 0, 10).replace(/^/mg, '// ');
-        puts(code);
+        console.log(code);
 
         if (err.length) err.map(function (e) {
             console.warn(e.stack);
