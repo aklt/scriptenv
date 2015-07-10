@@ -18,8 +18,11 @@
     "url": "git://github.com/aklt/scriptenv.git"
   },
   "dependencies": {
+    "del": "^1.2.0",
     "htmlparser2": "^3.8.2",
     "jsdom": "^4.1.0",
+    "jshint-stylish": "^2.0.1",
+    "matching-deps": "0.0.1",
     "mkdirp": "^0.5.1"
   }
 }
